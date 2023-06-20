@@ -41,7 +41,7 @@ func AuthLogin(requests requests.UserLoginRequest) (*pb.User, error) {
 		}
 
 		result = pb.User{
-			XId:       user.ID.String(),
+			XId:       user.ID.Hex(),
 			Name:      user.Name,
 			Email:     user.Email,
 			Phone:     user.Phone,
