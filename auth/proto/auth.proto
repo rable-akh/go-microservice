@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+option go_package = "microservice/auth";
+
+service Auth {
+    rpc Login (LoginRequest) returns (LoginResponse) {};
+    rpc SignUp (SignUpRequest) returns (SignUpResponse) {};
+
+    rpc GetUsers (UsersRequest) returns (UsersResponse) {};
+}
+
+message LoginRequest {
+    string user = 1;
+    string pass = 2;
+}
+
+message LoginResponse {
+    int32 status = 1;
+    string message = 2;
+    optional string error = 3;
+    User results = 4;
+}
+
+message SignUpRequest {
+    string name = 1;
+    string email = 2;
+    string phone = 3;
+    string password = 4;
+}
+
+message SignUpResponse {
+    int32 status = 1;
+    string message = 2;
+    optional string error = 3;
+    map<string, string> results = 4;
+}
+
+message UsersRequest {
+    string page = 1;
+    string perPage = 2;
+}
+
+message User {
+    string _id=1;
+    string name=2;
+    string email=3;
+    string phone=4;
+    string createdAt=5;
+    string atoken=6;
+}
+
+message UsersResponse {
+    int32 status = 1;
+    string message = 2;
+    optional string error = 3;
+    repeated User results = 4;
+}
