@@ -5,7 +5,7 @@ option go_package = "microservice/auth";
 service Auth {
     rpc Login (LoginRequest) returns (LoginResponse) {};
     rpc SignUp (SignUpRequest) returns (SignUpResponse) {};
-
+    rpc CheckToken (CheckTokenRequest) returns (CheckTokenResponse) {};
     rpc GetUsers (UsersRequest) returns (UsersResponse) {};
 }
 
@@ -54,4 +54,13 @@ message UsersResponse {
     string message = 2;
     optional string error = 3;
     repeated User results = 4;
+}
+
+message CheckTokenRequest {
+    string token = 1;
+}
+
+message CheckTokenResponse {
+    bool status = 1;
+    string message = 2;
 }

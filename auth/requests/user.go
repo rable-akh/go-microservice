@@ -16,3 +16,7 @@ type UserRequest struct {
 	Phone    string
 	Password string
 }
+
+type CheckTokenRequest struct {
+	Token string
+}

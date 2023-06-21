@@ -11,6 +11,13 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+type Claims struct {
+	Id   string `json:"id"`
+	User string `json:"user"`
+	Name string `json:"name"`
+	jwt.RegisteredClaims
+}
+
 func AuthLogin(requests requests.UserLoginRequest) (*pb.User, error) {
 
 	user, err := GetUser(requests)
@@ -22,17 +29,30 @@ func AuthLogin(requests requests.UserLoginRequest) (*pb.User, error) {
 
 	if utils.ComparePassword(requests.Password, user.Password) {
 
+		var myClaims Claims
+
 		mySignKey := []byte("akhgotesting")
 
-		claims := &jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().AddDate(0, 0, 1)),
-			Issuer:    "akh",
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			Subject:   "loginToken",
-			ID:        user.Email,
+		myClaims = Claims{
+			User: user.Email,
+			Id:   user.ID.Hex(),
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(time.Now().AddDate(0, 0, 1)),
+				Issuer:    "akh",
+				IssuedAt:  jwt.NewNumericDate(time.Now()),
+				Subject:   "loginToken",
+			},
 		}
 
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		// claims := &jwt.RegisteredClaims{
+		// 	ExpiresAt: jwt.NewNumericDate(time.Now().AddDate(0, 0, 1)),
+		// 	Issuer:    "akh",
+		// 	IssuedAt:  jwt.NewNumericDate(time.Now()),
+		// 	Subject:   "loginToken",
+		// 	ID:        user.Email,
+		// }
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, myClaims)
 
 		atoken, error := token.SignedString(mySignKey)
 
@@ -52,4 +72,46 @@ func AuthLogin(requests requests.UserLoginRequest) (*pb.User, error) {
 	} else {
 		return &pb.User{}, utils.ErrorPasswordVerify
 	}
+}
+
+func CheckToken(request requests.CheckTokenRequest) (map[string]interface{}, error) {
+	mySignKey := []byte("akhgotesting")
+	claims := &Claims{}
+	parse, err := jwt.ParseWithClaims(request.Token, claims, func(t *jwt.Token) (interface{}, error) {
+		return mySignKey, nil
+	})
+
+	checkUser := ValidUser(requests.UserLoginRequest{UserName: claims.User})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			return map[string]interface{}{
+				"status":  "false",
+				"message": "Token invalid",
+			}, err
+		}
+		return map[string]interface{}{
+			"status":  "false",
+			"message": err.Error(),
+		}, err
+	}
+
+	if checkUser {
+		return map[string]interface{}{
+			"status":  "true",
+			"message": "Authorized",
+		}, nil
+	}
+
+	if parse.Valid {
+		return map[string]interface{}{
+			"status":  "false",
+			"message": "Unauthorized",
+		}, err
+	}
+
+	return map[string]interface{}{
+		"status":  "false",
+		"message": "Unauthorized",
+	}, err
 }

@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type AuthClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*SignUpResponse, error)
+	CheckToken(ctx context.Context, in *CheckTokenRequest, opts ...grpc.CallOption) (*CheckTokenResponse, error)
 	GetUsers(ctx context.Context, in *UsersRequest, opts ...grpc.CallOption) (*UsersResponse, error)
 }
 
@@ -53,6 +54,15 @@ func (c *authClient) SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc
 	return out, nil
 }
 
+func (c *authClient) CheckToken(ctx context.Context, in *CheckTokenRequest, opts ...grpc.CallOption) (*CheckTokenResponse, error) {
+	out := new(CheckTokenResponse)
+	err := c.cc.Invoke(ctx, "/Auth/CheckToken", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authClient) GetUsers(ctx context.Context, in *UsersRequest, opts ...grpc.CallOption) (*UsersResponse, error) {
 	out := new(UsersResponse)
 	err := c.cc.Invoke(ctx, "/Auth/GetUsers", in, out, opts...)
@@ -68,6 +78,7 @@ func (c *authClient) GetUsers(ctx context.Context, in *UsersRequest, opts ...grp
 type AuthServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	SignUp(context.Context, *SignUpRequest) (*SignUpResponse, error)
+	CheckToken(context.Context, *CheckTokenRequest) (*CheckTokenResponse, error)
 	GetUsers(context.Context, *UsersRequest) (*UsersResponse, error)
 	mustEmbedUnimplementedAuthServer()
 }
@@ -81,6 +92,9 @@ func (UnimplementedAuthServer) Login(context.Context, *LoginRequest) (*LoginResp
 }
 func (UnimplementedAuthServer) SignUp(context.Context, *SignUpRequest) (*SignUpResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignUp not implemented")
+}
+func (UnimplementedAuthServer) CheckToken(context.Context, *CheckTokenRequest) (*CheckTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckToken not implemented")
 }
 func (UnimplementedAuthServer) GetUsers(context.Context, *UsersRequest) (*UsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
@@ -134,6 +148,24 @@ func _Auth_SignUp_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Auth_CheckToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).CheckToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Auth/CheckToken",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).CheckToken(ctx, req.(*CheckTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Auth_GetUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UsersRequest)
 	if err := dec(in); err != nil {
@@ -166,6 +198,10 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SignUp",
 			Handler:    _Auth_SignUp_Handler,
+		},
+		{
+			MethodName: "CheckToken",
+			Handler:    _Auth_CheckToken_Handler,
 		},
 		{
 			MethodName: "GetUsers",

@@ -8,6 +8,7 @@ import (
 	pb "microservice/auth/proto/microservice/auth"
 	"microservice/auth/requests"
 	"net/http"
+	"strconv"
 )
 
 func (s *ServiceServer) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginResponse, error) {
@@ -105,4 +106,27 @@ func (s *ServiceServer) GetUsers(ctx context.Context, in *pb.UsersRequest) (*pb.
 		Results: users,
 	}, nil
 
+}
+
+func (s *ServiceServer) CheckToken(ctx context.Context, in *pb.CheckTokenRequest) (*pb.CheckTokenResponse, error) {
+	log.Printf("Request: %v", in.ProtoReflect().Descriptor().FullName())
+	data := requests.CheckTokenRequest{
+		Token: in.Token,
+	}
+
+	results, err := factory.CheckToken(data)
+
+	status, _ := strconv.ParseBool(results["status"].(string))
+	if err != nil {
+		// log.Fatal(results)
+		return &pb.CheckTokenResponse{
+			Status:  status,
+			Message: results["message"].(string),
+		}, nil
+	}
+
+	return &pb.CheckTokenResponse{
+		Status:  true,
+		Message: "Success",
+	}, nil
 }

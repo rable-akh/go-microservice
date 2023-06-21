@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type User struct {
@@ -64,6 +65,24 @@ func GetUser(requests requests.UserLoginRequest) (User, bool) {
 	fmt.Println(result)
 
 	return result, true
+}
+
+func ValidUser(requests requests.UserLoginRequest) bool {
+	filter := bson.D{{Key: "email", Value: requests.UserName}}
+
+	opts := options.Count().SetHint("_id_")
+
+	count, err := userCollection.CountDocuments(context.TODO(), filter, opts)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// This error means your query did not match any documents.
+			return false
+		}
+	}
+	if count > 0 {
+		return true
+	}
+	return false
 }
 
 func SaveUser(requests requests.UserRequest) (interface{}, bool) {
