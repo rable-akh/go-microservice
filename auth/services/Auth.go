@@ -95,8 +95,8 @@ func (s *ServiceServer) GetUsers(ctx context.Context, in *pb.UsersRequest) (*pb.
 		users = append(users, &pb.User{
 			Name:      result.Name,
 			Email:     result.Email,
-			Phone:     result.Password,
-			CreatedAt: result.CreatedAt.Time().Format("DD-MM-YYYY"),
+			Phone:     result.Phone,
+			CreatedAt: result.CreatedAt.Time().Format("2006-01-02"),
 		})
 	}
 
